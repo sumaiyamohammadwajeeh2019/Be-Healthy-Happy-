@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitHer - Exercise App | Sumaiya Mohammad</title>
+<meta name="theme-color" content="#e91e63">
+<style>
+*{box-sizing:border-box} body{font-family:Arial;background:#f6f6f8;margin:0;padding-bottom:80px}
+.header{background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;padding:16px;position:sticky;top:0;z-index:20}
+.header h1{margin:0;font-size:22px}.header p{margin:4px 0;font-size:13px;opacity:.9}
+.langBar{display:flex;gap:6px;margin-top:10px}.langBar button{flex:1;padding:9px;background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.4);font-size:13px;border-radius:20px}.langBar button.active{background:#fff;color:#e91e63;font-weight:bold}
+.stats{display:flex;gap:8px;margin-top:12px}.stat{flex:1;background:rgba(255,255,255,.2);border-radius:12px;padding:10px;text-align:center}.stat b{font-size:18px;display:block}
+.topnav{display:flex;gap:6px;padding:10px;background:#fff;position:sticky;top:0;z-index:15;overflow-x:auto;white-space:nowrap}
+.topnav button{padding:10px 14px;border:none;border-radius:20px;background:#eee;cursor:pointer;font-size:13px}
+.topnav button.active{background:#e91e63;color:#fff}
+.page{display:none;padding:12px}.page.active{display:block}
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card img{width:100%;height:150px;object-fit:cover;border-radius:12px}
+.card h3{margin:8px 0 4px}.card p{margin:0;color:#666;font-size:13px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+input,select{width:100%;padding:11px;margin:6px 0;border:1px solid #ddd;border-radius:10px}
+button{width:100%;padding:13px;background:#e91e63;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;margin-top:6px}
+button.green{background:#0a7a42}button.dark{background:#222}button.grey{background:#777}button.outline{background:#fff;color:#e91e63;border:2px solid #e91e63}button.orange{background:#ff5722}button.purple{background:#6a1b9a}button.pink{background:#ad1457}
+.result{background:#fce4ec;padding:12px;border-radius:10px;margin-top:10px;font-weight:bold}
+.timerBig{font-size:64px;text-align:center;font-weight:900;color:#e91e63}
+.phase{text-align:center;font-weight:bold;font-size:18px}
+.progress{height:10px;background:#eee;border-radius:20px;overflow:hidden}.progress div{height:100%;background:#e91e63;width:0%}
+.chip{display:inline-block;background:#fce4ec;padding:6px 10px;border-radius:20px;font-size:12px;margin:2px;cursor:pointer}
+.badge{background:#ffeb3b;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+.yt{background:#fff3cd;border:1px dashed #f9a825;padding:10px;border-radius:10px;margin-top:8px;font-size:13px}
+.dietTab{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}.dietTab button{flex:1;padding:10px;font-size:12px;background:#eee;color:#333;min-width:90px}.dietTab button.active{background:#0a7a42;color:#fff}
+.vegTab{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}.vegTab button{flex:1;padding:11px;font-size:13px;background:#eee;color:#333;border:2px solid transparent;min-width:70px}.vegTab button.activeAll{background:#333;color:#fff}.vegTab button.activeVeg{background:#0a7a42;color:#fff}.vegTab button.activeEgg{background:#ff9800;color:#fff}.vegTab button.activeNonVeg{background:#c62828;color:#fff}
+.meal{border:1px solid #eee;border-radius:12px;padding:10px;margin:8px 0;background:#fafafa}.meal b{color:#e91e63}.opt{padding:8px;border-radius:8px;margin:5px 0;background:#fff;border-left:4px solid #0a7a42}.opt.egg{border-left-color:#ff9800}.opt.nonveg{border-left-color:#c62828}.optTag{font-size:11px;font-weight:bold;padding:2px 6px;border-radius:10px;color:#fff}.vegTag{background:#0a7a42}.eggTag{background:#ff9800}.nonvegTag{background:#c62828}.swapNote{font-size:11px;color:#0a7a42;font-weight:bold}
+.tip{background:#e8f5e9;border-left:5px solid #0a7a42;padding:12px;border-radius:10px;margin-bottom:10px}
+.tip.warn{background:#fff3e0;border-color:#ff9800}.tip.danger{background:#fce4ec;border-color:#e91e63}.tip.pink{background:#fce4ec;border-color:#ad1457}.tip.blue{background:#e3f2fd;border-color:#1565c0}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd;z-index:30}
+.bottom button{background:none;color:#333;border:none;padding:12px 0;font-size:12px;border-radius:0}.bottom button.active{color:#e91e63;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>💪 FitHer</h1>
+<p data-i18n="subtitle">By Sumaiya Mohammad • Bangladesh • Workout • Yoga • Zumba • Tai Chi</p>
+<div class="langBar">
+<button id="lang-bn" onclick="setLang('bn')">🇧🇩 বাংলা</button>
+<button id="lang-en" class="active" onclick="setLang('en')">🇺🇸 English</button>
+<button id="lang-jp" onclick="setLang('jp')">🇯🇵 日本語</button>
+</div>
+<div class="stats">
+<div class="stat"><b id="streakEl">0</b><span data-i18n="streak">🔥 Streak</span></div>
+<div class="stat"><b id="totalMinEl">0</b><span data-i18n="totalMin">⏱️ Total Min</span></div>
+<div class="stat"><b id="totalCalEl">0</b><span data-i18n="totalCal">🔥 Calories</span></div>
+</div>
+</div>
+
+<div class="topnav">
+<button class="active" onclick="showPage('home',this)" data-i18n="nav_home">🏠 Home</button>
+<button onclick="showPage('programs',this)" data-i18n="nav_programs">📋 Programs</button>
+<button onclick="showPage('workout',this)" data-i18n="nav_workout">🏋️ Workout</button>
+<button onclick="showPage('walking',this)" data-i18n="nav_walking">🚶 Walking</button>
+<button onclick="showPage('yoga',this)" data-i18n="nav_yoga">🧘 Yoga</button>
+<button onclick="showPage('zumba',this)" data-i18n="nav_zumba">💃 Zumba</button>
+<button onclick="showPage('taichi',this)" data-i18n="nav_taichi">🇯🇵 Tai Chi</button>
+<button onclick="showPage('player',this)" data-i18n="nav_player">▶️ Player</button>
+<button onclick="showPage('calc',this)" data-i18n="nav_calc">🧮 Calculator</button>
+<button onclick="showPage('diet',this)" data-i18n="nav_diet">🥗 Diet</button>
+<button onclick="showPage('tips',this)" data-i18n="nav_tips">💡 Tips</button>
+</div>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+<div class="card"><h3 data-i18n="hello">👋 Assalamu Alaikum!</h3><p data-i18n="goal_q">What is your goal today?</p>
+<div><span class="chip" onclick="pickGoal('Belly Fat')">Belly Fat</span><span class="chip" onclick="pickGoal('Weight Loss')">Weight Loss</span><span class="chip" onclick="pickGoal('Period')">Period</span><span class="chip" onclick="pickGoal('Old Age')">Old Age 50+</span><span class="chip" onclick="pickGoal('Diabetic')">Diabetic</span></div>
+<p id="goalText" style="margin-top:10px;font-weight:bold">Goal: Not selected</p>
+<label data-i18n="level">Your Level</label><select id="levelSel"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+<div class="card"><h3 data-i18n="today_plan">🔥 Today's Plan</h3><p><span id="todayName"></span> • <span data-i18n="today_desc">Beginner • 15 Min • No Jump • Low Impact</span></p><button onclick="startProgram('today')" data-i18n="start_today">▶ Start Today's Workout</button></div>
+<div class="card"><h3 data-i18n="japan_morning">🇯🇵 Japanese Morning - 10 Min Calm</h3><p data-i18n="japan_desc">Tai Chi + Deep Breathing + Radio Taiso - Best for stress, sleep, back pain</p><button class="purple" onclick="startProgram('taichi10')" data-i18n="start_taichi">▶ Start Japanese Tai Chi</button></div>
+<div class="card"><h3>🥗 Diet - Paneer Auto-Swap ✨</h3><p>Tap 🥦 Veg → All Egg becomes Paneer automatically. Tap 🥚 Egg → Back to Egg. No need to think!</p><button class="pink" onclick="showPage('diet',document.querySelectorAll('.topnav button')[9])">🥗 Try Paneer Swap</button></div>
+<div class="card"><h3 data-i18n="quick">⚡ Quick 7 Min</h3><button class="green" onclick="startProgram('quick')" data-i18n="start_quick">▶ 7 Min Quick Workout</button><button class="grey" onclick="resetAll()" data-i18n="reset_all">🔄 Reset All Progress</button></div>
+<div class="card"><h3 data-i18n="watch_yt">📺 Watch on YouTube</h3>
+<div class="yt">🇯🇵 Japanese Tai Chi - 10 Min<br><button class="dark" onclick="openYT('Japanese Tai Chi 10 minutes beginners')" data-i18n="watch">▶ Watch</button></div>
+<div class="yt">🧘 Yoga With Adriene - 15 Min<br><button class="dark" onclick="openYT('Yoga With Adriene 15 min beginners')" data-i18n="watch">▶ Watch</button></div>
+<div class="yt">🚶 Walk At Home 4000 Steps<br><button class="dark" onclick="openYT('Walk at Home 4000 steps no jumping')" data-i18n="watch">▶ Watch</button></div>
+</div>
+</div>
+
+<!-- PROGRAMS -->
+<div id="page-programs" class="page">
+<div class="card"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800"><h3>🇯🇵 <span data-i18n="prog_taichi">14-Day Japanese Tai Chi</span> <span class="badge">NEW</span></h3><p data-i18n="prog_taichi_desc">10 min/day • Slow, calm, balance + breathing • For stress, sleep, joint pain</p><button class="purple" onclick="startProgram('taichi10')" data-i18n="start">▶ Start</button></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800"><h3 data-i18n="prog_belly">1. 30-Day Belly Fat Challenge</h3><p data-i18n="prog_belly_desc">Week 1: 5 min → Week 4: 30 min • Standing, No Jump</p><button onclick="startProgram('belly')" data-i18n="start">▶ Start</button></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800"><h3 data-i18n="prog_yoga">2. 14-Day Yoga For Women</h3><p data-i18n="prog_yoga_desc">15 min/day • Cat-Cow, Cobra, Tree, Bridge</p><button onclick="startProgram('yoga14')" data-i18n="start">▶ Start</button></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800"><h3 data-i18n="prog_zumba">3. 7-Day Zumba Fun</h3><p data-i18n="prog_zumba_desc">20 min/day • Salsa, Merengue, Bollywood</p><button onclick="startProgram('zumba7')" data-i18n="start">▶ Start</button></div>
+</div>
+
+<!-- WORKOUT -->
+<div id="page-workout" class="page">
+<div class="card"><h3 data-i18n="ex_lib">🏋️ Exercise Library</h3><select id="filterEx" onchange="renderEx()"><option value="all">All</option><option>Belly</option><option>Legs</option><option>Arms</option><option>Cardio</option><option>Full Body</option></select><div id="exList"></div></div>
+</div>
+
+<!-- WALKING -->
+<div id="page-walking" class="page">
+<div class="card"><h3 data-i18n="walk_title">🚶 Walking - Velocity km/h</h3>
+<input id="walkVel" type="number" placeholder="Velocity km/h e.g. 5"><input id="walkTime" type="number" placeholder="Time Min e.g. 30"><input id="walkWeight" type="number" placeholder="Weight kg e.g. 55">
+<select id="walkType"><option value="1">Flat Road</option><option value="1.2">Brisk</option><option value="1.3">Hill / Stairs</option></select>
+<button onclick="calcWalk()" data-i18n="calculate">Calculate</button><div class="result" id="walkRes">Result here</div></div>
+<div class="card"><h3 data-i18n="steps">👟 Steps</h3><input id="walkSteps" type="number" placeholder="Steps e.g. 8000"><button onclick="calcStepsWalk()" data-i18n="check">Check</button><div class="result" id="walkStepsRes">Result here</div></div>
+</div>
+
+<!-- YOGA -->
+<div id="page-yoga" class="page">
+<div class="card"><h3 data-i18n="yoga_choose">🧘 Yoga - Choose Need</h3>
+<div><span class="chip" onclick="filterYoga('all')">All</span><span class="chip" onclick="filterYoga('Belly')">Belly</span><span class="chip" onclick="filterYoga('Back')">Back Pain</span><span class="chip" onclick="filterYoga('PCOS')">PCOS</span><span class="chip" onclick="filterYoga('Sleep')">Sleep</span><span class="chip" onclick="filterYoga('Period')">Period</span><span class="chip" onclick="filterYoga('Flexibility')">Flexibility</span></div></div>
+<div class="card"><h3 data-i18n="yoga_15">🧘 15 Min Daily Routine</h3><p>Cat-Cow 2m • Cobra 2m • Tree 2m • Bridge 2m • Child 2m • Twist 2m • Breathing 3m</p><button class="green" onclick="startProgram('yoga14')" data-i18n="start_yoga">▶ Start Yoga</button></div>
+<div id="yogaList"></div>
+</div>
+
+<!-- ZUMBA -->
+<div id="page-zumba" class="page">
+<div class="card"><h3 data-i18n="zumba_title">💃 Zumba</h3><p data-i18n="zumba_desc">20 min = ~300 cal • No jump</p><button style="background:#ff5722" onclick="startProgram('zumba7')" data-i18n="start_zumba">▶ Start Zumba</button></div>
+<div class="card"><h3 data-i18n="zumba_cal">🔥 Zumba Calories</h3><input id="zumbaMin" type="number" placeholder="Minutes e.g. 30"><input id="zumbaWeight" type="number" placeholder="Weight kg e.g. 55"><select id="zumbaLevel"><option value="7">Beginner 7</option><option value="9">Medium 9</option><option value="12">Intense 12</option></select><button onclick="calcZumba()" data-i18n="calculate">Calculate</button><div class="result" id="zumbaRes">Result here</div></div>
+<div id="zumbaList"></div>
+</div>
+
+<!-- TAI CHI -->
+<div id="page-taichi" class="page">
+<div class="card"><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800">
+<h3 data-i18n="taichi_title">🇯🇵 Japanese Tai Chi - Slow & Calm</h3>
+<p data-i18n="taichi_desc">Tai Chi = Slow moving meditation. In Japan, millions of women do it every morning in parks. No jump, no sweat, no pain.</p>
+<button class="purple" onclick="startProgram('taichi10')" data-i18n="start_taichi_session">▶ Start 10 Min Tai Chi Session</button></div>
+<div class="card"><h3 data-i18n="radio_title">🌅 Japanese Radio Taiso - 3 Min Morning</h3><p data-i18n="radio_desc">Like Japan school morning exercise - Done by whole Japan at 6:30 AM on radio!</p><button class="green" onclick="startProgram('radioTaiso')" data-i18n="start_radio">▶ Start Radio Taiso 3 Min</button></div>
+<div id="taichiList"></div>
+</div>
+
+<!-- PLAYER -->
+<div id="page-player" class="page">
+<div class="card">
+<h3 data-i18n="player_title">▶️ Workout Player</h3>
+<p class="phase" id="phaseText">Ready</p>
+<p style="text-align:center" id="playerEx" data-i18n="player_press">Press Start from Home / Programs</p>
+<div class="timerBig" id="playerTimer">00:30</div>
+<div class="progress"><div id="progBar"></div></div>
+<p style="text-align:center" id="playerInfo">Exercise 0 / 0</p>
+<button class="green" onclick="startPlayer()" data-i18n="start_resume">▶ Start / Resume</button>
+<button onclick="pausePlayer()" data-i18n="pause">⏸ Pause</button>
+<div class="row"><button class="grey" onclick="prevEx()" data-i18n="prev">⬅ Prev</button><button onclick="nextEx()" data-i18n="next">Next ➡</button></div>
+<button class="orange" onclick="resetTimer()" data-i18n="reset_timer">🔄 Reset Timer</button>
+<button class="grey" onclick="resetWorkout()" data-i18n="reset_workout">🔄 Reset Workout</button>
+<button class="dark" onclick="finishWorkout()" data-i18n="finish">✅ Finish & Save</button>
+</div>
+</div>
+
+<!-- CALCULATOR -->
+<div id="page-calc" class="page">
+<div class="card"><h3 data-i18n="calc_bmi">1. BMI Calculator</h3><input id="bmiH" type="number" placeholder="Height cm e.g. 160"><input id="bmiW" type="number" placeholder="Weight kg e.g. 55"><button onclick="calcBMI()" data-i18n="calculate">Calculate</button><div class="result" id="bmiRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_cal">2. Calorie Burn</h3><select id="calType"><option value="5">Walking 5</option><option value="8">Workout 8</option><option value="10">Running 10</option><option value="12">HIIT / Zumba 12</option></select><input id="calMin" type="number" placeholder="Minutes e.g. 30"><button onclick="calcCal()" data-i18n="calculate">Calculate</button><div class="result" id="calRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_water">3. Water Intake</h3><input id="waterW" type="number" placeholder="Weight kg e.g. 55"><button onclick="calcWater()" data-i18n="calculate">Calculate</button><div class="result" id="waterRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_ideal">4. Ideal Weight</h3><input id="idealH" type="number" placeholder="Height cm e.g. 160"><button onclick="calcIdeal()" data-i18n="calculate">Calculate</button><div class="result" id="idealRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_fat">5. Body Fat %</h3><input id="bfH" type="number" placeholder="Height cm e.g. 160"><input id="bfWaist" type="number" placeholder="Waist cm e.g. 75"><input id="bfNeck" type="number" placeholder="Neck cm e.g. 32"><input id="bfHip" type="number" placeholder="Hip cm e.g. 95"><button onclick="calcBodyFat()" data-i18n="calculate">Calculate</button><div class="result" id="bfRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_bmr">6. Daily Calories - BMR / TDEE</h3><input id="bmrW" type="number" placeholder="Weight kg e.g. 55"><input id="bmrH" type="number" placeholder="Height cm e.g. 160"><input id="bmrAge" type="number" placeholder="Age e.g. 22"><select id="bmrAct"><option value="1.2">Sedentary</option><option value="1.375">Light 1-3 days</option><option value="1.55">Moderate 3-5 days</option><option value="1.725">Active 6-7 days</option></select><button onclick="calcBMR()" data-i18n="calculate">Calculate</button><div class="result" id="bmrRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_protein">7. Protein Needs</h3><input id="proW" type="number" placeholder="Weight kg e.g. 55"><select id="proGoal"><option value="0.8">Normal 0.8</option><option value="1.2">Weight Loss 1.2</option><option value="1.6">Heavy Workout 1.6</option><option value="2.0">Muscle 2.0</option></select><button onclick="calcProtein()" data-i18n="calculate">Calculate</button><div class="result" id="proRes">Result here</div></div>
+<div class="card"><h3 data-i18n="calc_steps">8. Steps to Calories</h3><input id="steps" type="number" placeholder="Steps e.g. 5000"><button onclick="calcSteps()" data-i18n="calculate">Calculate</button><div class="result" id="stepsRes">Result here</div></div>
+</div>
+
+<!-- DIET - PANEER AUTO-SWAP -->
+<div id="page-diet" class="page">
+<div class="card"><h3 data-i18n="diet_choose">🥗 Choose Your Diet Plan</h3>
+<div class="dietTab">
+<button id="dietBtn1" class="active" onclick="showDiet('balanced',this)" data-i18n="diet_balanced">🥗 Balanced</button>
+<button onclick="showDiet('diabetic',this)" data-i18n="diet_diabetic">🩸 Diabetic</button>
+<button onclick="showDiet('heavy',this)" data-i18n="diet_heavy">💪 Heavy</button>
+<button onclick="showDiet('period',this)" data-i18n="diet_period">🌸 Period</button>
+<button onclick="showDiet('oldage',this)" data-i18n="diet_oldage">👵 Old Age 50+</button>
+</div>
+
+<div class="vegTab">
+<button id="vegBtnAll" class="activeAll" onclick="setDietMode('all',this)">🍽️ All</button>
+<button id="vegBtnVeg" onclick="setDietMode('veg',this)">🥦 Veg</button>
+<button id="vegBtnEgg" onclick="setDietMode('egg',this)">🥚 Egg Only</button>
+<button id="vegBtnNonVeg" onclick="setDietMode('nonveg',this)">🍗 Non-Veg</button>
+</div>
+<p style="font-size:12px;color:#666;text-align:center" id="dietModeText">Showing: All</p>
+<div class="card" style="background:#fff8e1;padding:10px"><b>🧀 Paneer Auto-Swap ✨</b><br>🥦 Veg = Egg → <b>Paneer</b> auto-change, Fish/Chicken hide<br>🥚 Egg Only = Veg + Egg, No Fish/Chicken<br>🍗 Non-Veg = Fish / Chicken / Egg all show<br><span id="swapInfo" style="color:#0a7a42;font-weight:bold"></span></div>
+
+<!-- 1. BALANCED -->
+<div id="diet-balanced">
+<div class="meal"><b>🌅 Breakfast - 3 Options - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="1 Ruti + Paneer 50g + Cucumber + Green Tea"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">1 Ruti + 1 Egg + Cucumber + Green Tea</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Oats + Banana + Milk + 5 Almonds</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Chira + Tok Doi + Banana + Gur (little)</div>
+</div>
+<div class="meal"><b>🍎 Snack 11 AM - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> Apple / Guava + 5 Almonds</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Muri + Chola + Cucumber</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Banana + Peanut Butter 1 spoon</div>
+</div>
+<div class="meal"><b>🍚 Lunch 1:30 PM - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1 Cup Rice + Dal + Fish + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option B:</b> 1 Ruti + Chicken + Vegetable + Salad</div>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Khichuri + Paneer 50g + Salad + Dal"><span class="optTag eggTag">🥚 Egg</span> <b>Option C:</b> <span class="optText">Khichuri + Egg + Salad + Dal</span></div>
+</div>
+<div class="meal"><b>☕ Evening 5 PM - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> Tea no sugar + Muri + Chola</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Green Tea + 2 Biscuit + Apple</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Lemon Water + Roasted Chola</div>
+</div>
+<div class="meal"><b>🌙 Dinner 8 PM - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> 1 Ruti + Vegetable + Dal - Light</div>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Soup + Paneer 50g + Salad"><span class="optTag eggTag">🥚 Egg</span> <b>Option B:</b> <span class="optText">Soup + 1 Egg + Salad</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Oats + Doi + Cucumber</div>
+</div>
+<p>💧 Water: 8-10 Glass • ~1800 Cal</p>
+</div>
+
+<!-- 2. DIABETIC -->
+<div id="diet-diabetic" style="display:none">
+<div class="meal"><b>🌅 Breakfast - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="1 Ruti (Atta) + Paneer 50g + Cucumber + Green Tea NO Sugar"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">1 Ruti (Atta) + Egg + Cucumber + Green Tea NO Sugar</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Chola + Cucumber + Lemon Water</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Oats no sugar + Almonds + Green Tea</div>
+</div>
+<div class="meal"><b>🍚 Lunch - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1/2 Cup Brown Rice + Dal + Fish + Salad + Korola</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> 1 Ruti + Dal + Lau + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option C:</b> 1 Ruti + Chicken + Vegetable + Cucumber</div>
+</div>
+<div class="meal"><b>🌙 Dinner - Before 8 PM - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> 1 Ruti + Vegetable + Dal</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Vegetable Soup + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option C:</b> 1 Ruti + Fish + Lau</div>
+</div>
+<p>🚫 NO: Sugar, Cold Drinks, Misti, White Rice large • ✅ YES: Korola, Methi, Cinnamon, Walk 30 min after meal</p>
+</div>
+
+<!-- 3. HEAVY -->
+<div id="diet-heavy" style="display:none">
+<div class="meal"><b>🌅 Breakfast - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Paneer 100g + 2 Ruti + Banana + Milk"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">2 Eggs + 2 Ruti + Banana + Milk</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Oats + Milk + Peanut Butter + Banana</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Chira + Doi + Almonds + Banana</div>
+</div>
+<div class="meal"><b>🥤 Pre-Workout (1 hr before) - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> Banana + Peanut Butter</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Chola + Cucumber</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Oats + Milk (small)</div>
+</div>
+<div class="meal"><b>🥤 Post-Workout (within 30 min) - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Paneer 50g + Milk + Banana"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">1 Egg + Milk + Banana</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Tok Doi + Banana + Almonds</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option C:</b> Chicken 100g + Rice small</div>
+</div>
+<div class="meal"><b>🍚 Lunch - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1.5 Cup Rice + Dal + Chicken 150g + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option B:</b> 2 Ruti + Fish + Vegetable</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Khichuri + Paneer / Soybean + Dal + Salad</div>
+</div>
+<div class="meal"><b>🌙 Dinner - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1 Ruti + Chicken + Vegetable</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option B:</b> 1 Ruti + Fish + Dal</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Vegetable Soup + Paneer + Salad</div>
+</div>
+<p>💪 Protein: 80-100g / day • Water: 10-12 Glass</p>
+</div>
+
+<!-- 4. PERIOD -->
+<div id="diet-period" style="display:none">
+<p><b>🌸 Period Diet - Iron + Warm + Easy Digest</b> • No cold, no fasting, no heavy workout Day 1-2</p>
+<div class="meal"><b>🌅 Breakfast - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="1 Ruti + Paneer 50g + Khejurer Gur (little) + Warm Milk"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">1 Ruti + Egg + Khejurer Gur (little) + Warm Milk</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Chira + Khejurer Gur + Banana + Warm Milk</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Oats + Khejur + Kishmish + Warm Milk</div>
+</div>
+<div class="meal"><b>🍚 Lunch - Iron Meal - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1 Cup Rice + Palong Shak + Dal + Fish / Egg + Lemon</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> 1 Cup Rice + Lal Shak + Dal + Paneer + Lemon</div>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Khichuri + Palong Shak + Paneer 50g + Lemon"><span class="optTag eggTag">🥚 Egg</span> <b>Option C:</b> <span class="optText">Khichuri + Palong Shak + Egg + Lemon</span></div>
+</div>
+<div class="meal"><b>☕ Evening - Warm Drink - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> Ginger Tea (Ada Cha) + Chola + Khejur</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Warm Milk + Khejur + Almonds</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Warm Soup + Banana</div>
+</div>
+<div class="meal"><b>🌙 Dinner - Light Warm - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> 1 Ruti + Lau / Pumpkin + Dal</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Vegetable Soup + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option C:</b> 1 Ruti + Chicken Soup + Vegetable</div>
+</div>
+<p>✅ YES: Palong Shak, Khejurer Gur, Egg / Paneer, Banana, Khejur, Kishmish, Ginger Tea • 🚫 NO: Cold Drinks, Ice Cream, Too Much Tea/Coffee, Fried, Fasting</p>
+</div>
+
+<!-- 5. OLD AGE -->
+<div id="diet-oldage" style="display:none">
+<p><b>👵 Old Age 50+ / 60+ - Calcium + Protein + Soft + Easy Digest</b> • Dinner before 7:30 PM</p>
+<div class="meal"><b>🌅 Breakfast - Soft - Pick 1</b>
+<div class="opt egg" data-diet-type="egg" data-veg-text="1 Soft Ruti + Paneer 50g + Milk 1 Glass + Banana"><span class="optTag eggTag">🥚 Egg</span> <b>Option A:</b> <span class="optText">1 Soft Ruti + Boiled Egg + Milk 1 Glass + Banana</span></div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Oats + Milk + Banana + Soaked Almonds</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Soft Khichuri + Paneer + Papaya</div>
+</div>
+<div class="meal"><b>🍎 Snack 11 AM - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> Papaya / Apple (soft) + Tok Doi + Almonds (soaked)</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Banana + Milk</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option C:</b> Khejur + Milk + Biscuit</div>
+</div>
+<div class="meal"><b>🍚 Lunch - Pick 1</b>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option A:</b> 1 Cup Soft Rice + Thin Dal + Small Fish (Rui/Pabda) + Lau + Salad</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option B:</b> 1 Ruti + Dal + Chicken (soft) + Papaya</div>
+<div class="opt egg" data-diet-type="egg" data-veg-text="Soft Khichuri + Paneer 50g + Palong Shak + Salad"><span class="optTag eggTag">🥚 Egg</span> <b>Option C:</b> <span class="optText">Soft Khichuri + Egg + Palong Shak + Salad</span></div>
+</div>
+<div class="meal"><b>🌙 Dinner 7:30 PM - Very Light - Pick 1</b>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option A:</b> 1 Ruti + Vegetable Soup + Dal</div>
+<div class="opt" data-diet-type="veg"><span class="optTag vegTag">🥦 Veg</span> <b>Option B:</b> Milk + Biscuit + Banana</div>
+<div class="opt nonveg" data-diet-type="nonveg"><span class="optTag nonvegTag">🍗 Non-Veg</span> <b>Option C:</b> 1 Ruti + Fish Soup + Vegetable</div>
+</div>
+<p>✅ MUST DAILY: Milk / Doi (Calcium), Small Fish, Egg / Paneer, Palong Shak, Papaya, Almonds, Til • 🚫 NO: Too much salt, Fried, Cold Drinks, Late heavy dinner • 🦴 Walk in morning sun 15 min for Vitamin D + Tai Chi for balance</p>
+</div>
+
+</div>
+<div class="card"><h3 data-i18n="weight_goal">⚖️ Weight Goal</h3><input id="curW" type="number" placeholder="Current kg e.g. 65"><input id="goalW" type="number" placeholder="Goal kg e.g. 55"><button onclick="calcGoal()" data-i18n="check_goal">Check Goal</button><div class="result" id="goalRes">Result here</div></div>
+</div>
+
+<!-- TIPS -->
+<div id="page-tips" class="page">
+<div class="card"><h3 data-i18n="tips_title">💡 Health Tips</h3><p data-i18n="tips_desc">Daily tips for women</p></div>
+<div class="tip"><b data-i18n="tip_water_t">💧 Water First</b><br><span data-i18n="tip_water">1 glass after waking up. 8-10 glass / day.</span></div>
+<div class="tip"><b data-i18n="tip_sleep_t">😴 Sleep 7-8 Hours</b><br><span data-i18n="tip_sleep">No sleep = more belly fat. Sleep before 11 PM.</span></div>
+<div class="tip"><b data-i18n="tip_walk_t">🚶 Walk After Eating</b><br><span data-i18n="tip_walk">10-15 min after meal. Best for diabetic + PCOS.</span></div>
+<div class="tip warn"><b data-i18n="tip_sugar_t">🍬 Sugar = Belly Fat</b><br><span data-i18n="tip_sugar">1 cold drink = 10 spoon sugar.</span></div>
+<div class="tip pink"><b>🌸 Period Tip</b><br>Period time: Warm food, iron food, rest. Don't do heavy workout. Use heat bag on belly for pain. Track period date every month.</div>
+<div class="tip blue"><b>👵 Old Age Tip</b><br>After 50: Milk daily, morning sun 15 min, Tai Chi for balance, check pressure + sugar monthly. Don't walk alone at night, keep phone with you.</div>
+<div class="tip"><b data-i18n="tip_japan_t">🇯🇵 Japanese Secret - Hara Hachi Bu</b><br><span data-i18n="tip_japan">Eat until 80% full, not 100%.</span></div>
+<div class="tip danger"><b data-i18n="tip_stop_t">⚠️ Stop If:</b><br><span data-i18n="tip_stop">Chest pain, dizziness, faint, severe pain. Rest + tell family.</span></div>
+</div>
+
+<div class="bottom">
+<button class="active" onclick="showPage('home',this)" data-i18n="nav_home">🏠 Home</button>
+<button onclick="showPage('programs',this)" data-i18n="nav_programs">📋 Programs</button>
+<button onclick="showPage('taichi',this)" data-i18n="nav_taichi">🇯🇵 Tai Chi</button>
+<button onclick="showPage('player',this)" data-i18n="nav_player">▶️ Player</button>
+<button onclick="showPage('calc',this)" data-i18n="nav_calc">🧮 Calc</button>
+<button onclick="showPage('diet',this)" data-i18n="nav_diet">🥗 Diet</button>
+<button onclick="showPage('tips',this)" data-i18n="nav_tips">💡 Tips</button>
+</div>
+
+<script>
+let currentLang = localStorage.getItem('fh_lang') || 'en';
+let dietMode = localStorage.getItem('fh_dietMode') || 'all';
+const LANG = {
+en:{subtitle:"By Sumaiya Mohammad • Bangladesh • Workout • Yoga • Zumba • Tai Chi",streak:"🔥 Streak",totalMin:"⏱️ Total Min",totalCal:"🔥 Calories",nav_home:"🏠 Home",nav_programs:"📋 Programs",nav_workout:"🏋️ Workout",nav_walking:"🚶 Walking",nav_yoga:"🧘 Yoga",nav_zumba:"💃 Zumba",nav_taichi:"🇯🇵 Tai Chi",nav_player:"▶️ Player",nav_calc:"🧮 Calculator",nav_diet:"🥗 Diet",nav_tips:"💡 Tips",hello:"👋 Assalamu Alaikum!",goal_q:"What is your goal today?",level:"Your Level",today_plan:"🔥 Today's Plan",today_desc:"Beginner • 15 Min • No Jump • Low Impact",start_today:"▶ Start Today's Workout",japan_morning:"🇯🇵 Japanese Morning - 10 Min Calm",japan_desc:"Tai Chi + Deep Breathing + Radio Taiso - Best for stress, sleep, back pain",start_taichi:"▶ Start Japanese Tai Chi",quick:"⚡ Quick 7 Min",start_quick:"▶ 7 Min Quick Workout",reset_all:"🔄 Reset All Progress",watch_yt:"📺 Watch on YouTube",watch:"▶ Watch",start:"▶ Start",prog_taichi:"14-Day Japanese Tai Chi",prog_taichi_desc:"10 min/day • Slow, calm, balance + breathing • For stress, sleep, joint pain",prog_belly:"1. 30-Day Belly Fat Challenge",prog_belly_desc:"Week 1: 5 min → Week 4: 30 min • Standing, No Jump",prog_yoga:"2. 14-Day Yoga For Women",prog_yoga_desc:"15 min/day • Cat-Cow, Cobra, Tree, Bridge",prog_zumba:"3. 7-Day Zumba Fun",prog_zumba_desc:"20 min/day • Salsa, Merengue, Bollywood",ex_lib:"🏋️ Exercise Library",walk_title:"🚶 Walking - Velocity km/h",walk_speed:"Slow 3 • Normal 5 • Brisk 6 • Fast 7 km/h",steps:"👟 Steps",calculate:"Calculate",check:"Check",yoga_choose:"🧘 Yoga - Choose Need",yoga_15:"🧘 15 Min Daily Routine",start_yoga:"▶ Start Yoga",zumba_title:"💃 Zumba",zumba_desc:"20 min = ~300 cal • No jump",start_zumba:"▶ Start Zumba",zumba_cal:"🔥 Zumba Calories",taichi_title:"🇯🇵 Japanese Tai Chi - Slow & Calm",taichi_desc:"Tai Chi = Slow moving meditation. In Japan, millions of women do it every morning in parks. No jump, no sweat, no pain.",start_taichi_session:"▶ Start 10 Min Tai Chi Session",radio_title:"🌅 Japanese Radio Taiso - 3 Min Morning",radio_desc:"Like Japan school morning exercise - Done by whole Japan at 6:30 AM on radio!",start_radio:"▶ Start Radio Taiso 3 Min",player_title:"▶️ Workout Player",player_press:"Press Start from Home / Programs",start_resume:"▶ Start / Resume",pause:"⏸ Pause",prev:"⬅ Prev",next:"Next ➡",reset_timer:"🔄 Reset Timer",reset_workout:"🔄 Reset Workout",finish:"✅ Finish & Save",calc_bmi:"1. BMI Calculator",calc_cal:"2. Calorie Burn",calc_water:"3. Water Intake",calc_ideal:"4. Ideal Weight",calc_fat:"5. Body Fat %",calc_bmr:"6. Daily Calories - BMR / TDEE",calc_protein:"7. Protein Needs",calc_steps:"8. Steps to Calories",diet_choose:"🥗 Choose Your Diet Plan",diet_balanced:"🥗 Balanced",diet_diabetic:"🩸 Diabetic",diet_heavy:"💪 Heavy",diet_period:"🌸 Period",diet_oldage:"👵 Old Age 50+",breakfast:"Breakfast:",lunch:"Lunch:",dinner:"Dinner:",water:"Water:",diabetic_title:"Diabetic - Low Sugar",heavy_title:"Heavy Workout - High Protein",weight_goal:"⚖️ Weight Goal",check_goal:"Check Goal",tips_title:"💡 Health Tips",tips_desc:"Daily tips for women",tip_water_t:"💧 Water First",tip_water:"1 glass after waking up. 8-10 glass / day.",tip_sleep_t:"😴 Sleep 7-8 Hours",tip_sleep:"No sleep = more belly fat. Sleep before 11 PM.",tip_walk_t:"🚶 Walk After Eating",tip_walk:"10-15 min after meal. Best for diabetic + PCOS.",tip_sugar_t:"🍬 Sugar = Belly Fat",tip_sugar:"1 cold drink = 10 spoon sugar.",tip_japan_t:"🇯🇵 Japanese Secret - Hara Hachi Bu",tip_japan:"Eat until 80% full, not 100%.",tip_stop_t:"⚠️ Stop If:",tip_stop:"Chest pain, dizziness, faint, severe pain. Rest + tell family."},
+bn:{subtitle:"সুমাইয়া মোহাম্মদ • বাংলাদেশ • ওয়ার্কআউট • যোগা • জুম্বা • তাই চি",streak:"🔥 স্ট্রিক",totalMin:"⏱️ মোট মিনিট",totalCal:"🔥 ক্যালোরি",nav_home:"🏠 হোম",nav_programs:"📋 প্রোগ্রাম",nav_workout:"🏋️ ওয়ার্কআউট",nav_walking:"🚶 হাঁটা",nav_yoga:"🧘 যোগা",nav_zumba:"💃 জুম্বা",nav_taichi:"🇯🇵 তাই চি",nav_player:"▶️ প্লেয়ার",nav_calc:"🧮 ক্যালকুলেটর",nav_diet:"🥗 ডায়েট",nav_tips:"💡 টিপস",hello:"👋 আসসালামু আলাইকুম!",goal_q:"আজ আপনার লক্ষ্য কী?",level:"আপনার লেভেল",today_plan:"🔥 আজকের প্ল্যান",today_desc:"বিগিনার • ১৫ মিনিট • লাফ নেই • হালকা",start_today:"▶ আজকের ওয়ার্কআউট শুরু",japan_morning:"🇯🇵 জাপানি সকাল - ১০ মিনিট শান্ত",japan_desc:"তাই চি + গভীর শ্বাস + রেডিও তাইসো - স্ট্রেস, ঘুম, কোমর ব্যথার জন্য সেরা",start_taichi:"▶ জাপানি তাই চি শুরু",quick:"⚡ দ্রুত ৭ মিনিট",start_quick:"▶ ৭ মিনিট দ্রুত ওয়ার্কআউট",reset_all:"🔄 সব প্রোগ্রেস মুছুন",watch_yt:"📺 ইউটিউবে দেখুন",watch:"▶ দেখুন",start:"▶ শুরু",prog_taichi:"১৪ দিনের জাপানি তাই চি",prog_taichi_desc:"১০ মিনিট/দিন • ধীর, শান্ত, ব্যালান্স + শ্বাস",prog_belly:"১. ৩০ দিনের পেটের চর্বি চ্যালেঞ্জ",prog_belly_desc:"সপ্তাহ ১: ৫ মিনিট → সপ্তাহ ৪: ৩০ মিনিট",prog_yoga:"২. ১৪ দিনের মহিলাদের যোগা",prog_yoga_desc:"১৫ মিনিট/দিন • ক্যাট-কাউ, কোবরা, ট্রি, ব্রিজ",prog_zumba:"৩. ৭ দিনের জুম্বা মজা",prog_zumba_desc:"২০ মিনিট/দিন • সালসা, মেরেঙ্গে, বলিউড",ex_lib:"🏋️ ব্যায়ামের লাইব্রেরি",walk_title:"🚶 হাঁটা - গতি কিমি/ঘণ্টা",walk_speed:"ধীর ৩ • স্বাভাবিক ৫ • দ্রুত ৬ • খুব দ্রুত ৭",steps:"👟 স্টেপ",calculate:"হিসাব করুন",check:"চেক করুন",yoga_choose:"🧘 যোগা - প্রয়োজন বেছে নিন",yoga_15:"🧘 ১৫ মিনিট দৈনিক রুটিন",start_yoga:"▶ যোগা শুরু",zumba_title:"💃 জুম্বা",zumba_desc:"২০ মিনিট = ~৩০০ ক্যালোরি • লাফ নেই",start_zumba:"▶ জুম্বা শুরু",zumba_cal:"🔥 জুম্বা ক্যালোরি",taichi_title:"🇯🇵 জাপানি তাই চি - ধীর ও শান্ত",taichi_desc:"তাই চি = ধীর চলমান ধ্যান। জাপানে লাখ লাখ মহিলা প্রতিদিন সকালে পার্কে করে।",start_taichi_session:"▶ ১০ মিনিট তাই চি সেশন শুরু",radio_title:"🌅 জাপানি রেডিও তাইসো - ৩ মিনিট সকাল",radio_desc:"জাপান স্কুলের সকালের ব্যায়াম - পুরো জাপান সকাল ৬:৩০ এ করে!",start_radio:"▶ রেডিও তাইসো ৩ মিনিট শুরু",player_title:"▶️ ওয়ার্কআউট প্লেয়ার",player_press:"হোম / প্রোগ্রাম থেকে শুরু চাপুন",start_resume:"▶ শুরু / আবার শুরু",pause:"⏸ বিরতি",prev:"⬅ আগের",next:"পরের ➡",reset_timer:"🔄 টাইমার রিসেট",reset_workout:"🔄 ওয়ার্কআউট রিসেট",finish:"✅ শেষ ও সেভ",calc_bmi:"১. BMI ক্যালকুলেটর",calc_cal:"২. ক্যালোরি বার্ন",calc_water:"৩. পানি",calc_ideal:"৪. আদর্শ ওজন",calc_fat:"৫. বডি ফ্যাট %",calc_bmr:"৬. দৈনিক ক্যালোরি - BMR",calc_protein:"৭. প্রোটিন প্রয়োজন",calc_steps:"৮. স্টেপ থেকে ক্যালোরি",diet_choose:"🥗 আপনার ডায়েট প্ল্যান বেছে নিন",diet_balanced:"🥗 ব্যালান্সড",diet_diabetic:"🩸 ডায়াবেটিক",diet_heavy:"💪 হেভি",diet_period:"🌸 পিরিয়ড",diet_oldage:"👵 বয়স্ক ৫০+",breakfast:"সকাল:",lunch:"দুপুর:",dinner:"রাত:",water:"পানি:",diabetic_title:"ডায়াবেটিক - কম চিনি",heavy_title:"হেভি ওয়ার্কআউট - বেশি প্রোটিন",weight_goal:"⚖️ ওজন লক্ষ্য",check_goal:"লক্ষ্য চেক",tips_title:"💡 স্বাস্থ্য টিপস",tips_desc:"মহিলাদের জন্য দৈনিক টিপস",tip_water_t:"💧 প্রথমে পানি",tip_water:"ঘুম থেকে উঠে ১ গ্লাস পানি। দিনে ৮-১০ গ্লাস।",tip_sleep_t:"😴 ঘুম ৭-৮ ঘণ্টা",tip_sleep:"ঘুম না হলে পেটের চর্বি বাড়ে। রাত ১১টার আগে ঘুমান।",tip_walk_t:"🚶 খাওয়ার পর হাঁটা",tip_walk:"খাওয়ার পর ১০-১৫ মিনিট হাঁটুন।",tip_sugar_t:"🍬 চিনি = পেটের চর্বি",tip_sugar:"১ কোল্ড ড্রিংক = ১০ চামচ চিনি।",tip_japan_t:"🇯🇵 জাপানি গোপন - হারা হাচি বু",tip_japan:"৮০% পেট ভরা পর্যন্ত খান, ১০০% নয়।",tip_stop_t:"⚠️ থামুন যদি:",tip_stop:"বুকে ব্যথা, মাথা ঘোরা, অজ্ঞান, তীব্র ব্যথা।"},
+jp:{subtitle:"Sumaiya Mohammad • バングラデシュ • ワークアウト • ヨガ • ズンバ • 太極拳",streak:"🔥 連続",totalMin:"⏱️ 合計分",totalCal:"🔥 カロリー",nav_home:"🏠 ホーム",nav_programs:"📋 プログラム",nav_workout:"🏋️ ワークアウト",nav_walking:"🚶 ウォーキング",nav_yoga:"🧘 ヨガ",nav_zumba:"💃 ズンバ",nav_taichi:"🇯🇵 太極拳",nav_player:"▶️ プレイヤー",nav_calc:"🧮 計算",nav_diet:"🥗 食事",nav_tips:"💡 ヒント",hello:"👋 アッサラームアライクム！",goal_q:"今日の目標は何ですか？",level:"あなたのレベル",today_plan:"🔥 今日のプラン",today_desc:"初心者 • 15分 • ジャンプなし • 低負荷",start_today:"▶ 今日のワークアウト開始",japan_morning:"🇯🇵 日本の朝 - 10分リラックス",japan_desc:"太極拳 + 深呼吸 + ラジオ体操 - ストレス、睡眠、腰痛に最適",start_taichi:"▶ 日本の太極拳を開始",quick:"⚡ クイック7分",start_quick:"▶ 7分クイックワークアウト",reset_all:"🔄 全ての進捗をリセット",watch_yt:"📺 YouTubeで見る",watch:"▶ 見る",start:"▶ 開始",prog_taichi:"14日間 日本の太極拳",prog_taichi_desc:"10分/日 • ゆっくり、穏やか、バランス + 呼吸",prog_belly:"1. 30日間 お腹脂肪チャレンジ",prog_belly_desc:"週1: 5分 → 週4: 30分",prog_yoga:"2. 14日間 女性のヨガ",prog_yoga_desc:"15分/日 • キャットカウ、コブラ、ツリー、ブリッジ",prog_zumba:"3. 7日間 ズンバ",prog_zumba_desc:"20分/日 • サルサ、メレンゲ、ボリウッド",ex_lib:"🏋️ 運動ライブラリ",walk_title:"🚶 ウォーキング - 速度 km/h",walk_speed:"ゆっくり 3 • 普通 5 • 早歩き 6 • 速い 7",steps:"👟 歩数",calculate:"計算",check:"チェック",yoga_choose:"🧘 ヨガ - ニーズを選択",yoga_15:"🧘 15分 毎日のルーティン",start_yoga:"▶ ヨガ開始",zumba_title:"💃 ズンバ",zumba_desc:"20分 = 約300カロリー • ジャンプなし",start_zumba:"▶ ズンバ開始",zumba_cal:"🔥 ズンバ カロリー",taichi_title:"🇯🇵 日本の太極拳 - ゆっくり & 穏やか",taichi_desc:"太極拳 = ゆっくり動く瞑想。日本では何百万人もの女性が毎朝公園でやっています。",start_taichi_session:"▶ 10分 太極拳セッション開始",radio_title:"🌅 日本のラジオ体操 - 3分 朝",radio_desc:"日本の学校の朝の体操 - 日本全国が朝6:30にラジオでやります！",start_radio:"▶ ラジオ体操 3分 開始",player_title:"▶️ ワークアウト プレイヤー",player_press:"ホーム / プログラムから開始を押してください",start_resume:"▶ 開始 / 再開",pause:"⏸ 一時停止",prev:"⬅ 前へ",next:"次へ ➡",reset_timer:"🔄 タイマー リセット",reset_workout:"🔄 ワークアウト リセット",finish:"✅ 終了 & 保存",calc_bmi:"1. BMI 計算",calc_cal:"2. 消費カロリー",calc_water:"3. 水分摂取",calc_ideal:"4. 理想体重",calc_fat:"5. 体脂肪率 %",calc_bmr:"6. 1日のカロリー - BMR",calc_protein:"7. タンパク質 必要量",calc_steps:"8. 歩数 → カロリー",diet_choose:"🥗 食事プランを選択",diet_balanced:"🥗 バランス",diet_diabetic:"🩸 糖尿病",diet_heavy:"💪 ハード",diet_period:"🌸 生理",diet_oldage:"👵 高齢 50+",breakfast:"朝食:",lunch:"昼食:",dinner:"夕食:",water:"水:",diabetic_title:"糖尿病 - 低糖",heavy_title:"ハードワークアウト - 高タンパク",weight_goal:"⚖️ 体重目標",check_goal:"目標をチェック",tips_title:"💡 健康ヒント",tips_desc:"女性のための毎日のヒント",tip_water_t:"💧 まず水",tip_water:"起きてすぐ1杯の水。1日8-10杯。",tip_sleep_t:"😴 睡眠 7-8時間",tip_sleep:"睡眠不足 = お腹の脂肪が増える。夜11時前に寝る。",tip_walk_t:"🚶 食後に歩く",tip_walk:"食後10-15分歩く。",tip_sugar_t:"🍬 砂糖 = お腹の脂肪",tip_sugar:"1本のコールドドリンク = 砂糖10杯分。",tip_japan_t:"🇯🇵 日本の秘密 - 腹八分目",tip_japan:"80%まで食べる、100%まで食べない。",tip_stop_t:"⚠️ 止めてください:",tip_stop:"胸の痛み、めまい、失神、激しい痛み。"}
+};
+function setLang(l){ currentLang=l; localStorage.setItem('fh_lang',l); document.querySelectorAll('.langBar button').forEach(function(b){ b.classList.remove('active'); }); document.getElementById('lang-'+l).classList.add('active'); document.querySelectorAll('[data-i18n]').forEach(function(el){ let key=el.getAttribute('data-i18n'); if(LANG[l] && LANG[l][key]) el.innerHTML=LANG[l][key]; }); updateStats(); }
+
+// VEG / EGG / NON-VEG + PANEER AUTO-SWAP - UPDATED
+function setDietMode(mode,btn){
+  dietMode=mode; localStorage.setItem('fh_dietMode',mode);
+  document.getElementById('vegBtnAll').className=''; document.getElementById('vegBtnVeg').className=''; document.getElementById('vegBtnEgg').className=''; document.getElementById('vegBtnNonVeg').className='';
+  if(mode=='veg'){ document.getElementById('vegBtnVeg').className='activeVeg'; document.getElementById('dietModeText').innerHTML='Showing: 🥦 Veg Only • Egg → Paneer Auto-Swapped • Fish/Chicken hidden'; document.getElementById('swapInfo').innerHTML='✨ Swap ON: All Egg → Paneer'; }
+  else if(mode=='egg'){ document.getElementById('vegBtnEgg').className='activeEgg'; document.getElementById('dietModeText').innerHTML='Showing: 🥚 Egg Only • Veg + Egg, No Fish / Chicken'; document.getElementById('swapInfo').innerHTML=''; }
+  else if(mode=='nonveg'){ document.getElementById('vegBtnNonVeg').className='activeNonVeg'; document.getElementById('dietModeText').innerHTML='Showing: 🍗 Non-Veg Only • Fish / Chicken / Egg'; document.getElementById('swapInfo').innerHTML=''; }
+  else { document.getElementById('vegBtnAll').className='activeAll'; document.getElementById('dietModeText').innerHTML='Showing: All • Veg = No Egg / Fish / Chicken • Egg = Veg + Egg • Non-Veg = Fish / Chicken / Egg'; document.getElementById('swapInfo').innerHTML=''; }
+  if(btn) btn.className = mode=='veg'?'activeVeg':mode=='egg'?'activeEgg':mode=='nonveg'?'activeNonVeg':'activeAll';
+
+  document.querySelectorAll('.opt').forEach(function(o){
+    let t=o.getAttribute('data-diet-type');
+    // Save original once
+    if(!o.dataset.orig){ o.dataset.orig = o.innerHTML; }
+    let textEl = o.querySelector('.optText');
+    let tagEl = o.querySelector('.optTag');
+
+    if(mode=='veg' && t=='egg'){
+      // SHOW egg option but SWAPPED to Paneer
+      o.style.display='block';
+      o.style.borderLeftColor='#0a7a42';
+      if(tagEl){ tagEl.innerHTML='🥦 Veg • 🧀 Paneer'; tagEl.className='optTag vegTag'; }
+      if(textEl && o.getAttribute('data-veg-text')){ textEl.innerHTML = o.getAttribute('data-veg-text') + ' <span class="swapNote">✨ Swapped: Egg → Paneer</span>'; }
+    } else if(mode=='veg' && t=='nonveg'){
+      o.style.display='none';
+    } else if(mode=='veg' && t=='veg'){
+      o.style.display='block';
+    } else if(mode=='egg'){
+      // Egg mode: show veg + egg, hide nonveg, restore egg text
+      if(t=='nonveg'){ o.style.display='none'; } else { o.style.display='block'; o.innerHTML = o.dataset.orig; }
+    } else if(mode=='nonveg'){
+      // Non-Veg: show nonveg + egg, hide pure veg? Keep veg hidden to be clear, but show egg original
+      if(t=='veg'){ o.style.display='none'; } else { o.style.display='block'; o.innerHTML = o.dataset.orig; }
+    } else {
+      // All: restore all
+      o.style.display='block'; o.innerHTML = o.dataset.orig;
+    }
+  });
+}
+function applyDietModeOnLoad(){ if(dietMode=='veg') setDietMode('veg',document.getElementById('vegBtnVeg')); else if(dietMode=='egg') setDietMode('egg',document.getElementById('vegBtnEgg')); else if(dietMode=='nonveg') setDietMode('nonveg',document.getElementById('vegBtnNonVeg')); else setDietMode('all',document.getElementById('vegBtnAll')); }
+
+let streak=parseInt(localStorage.getItem('fh_streak')||0);
+let totalMin=parseInt(localStorage.getItem('fh_min')||0);
+let totalCal=parseInt(localStorage.getItem('fh_cal')||0);
+let goal=localStorage.getItem('fh_goal')||'Not selected';
+function updateStats(){ document.getElementById('streakEl').innerHTML=streak; document.getElementById('totalMinEl').innerHTML=totalMin; document.getElementById('totalCalEl').innerHTML=totalCal; document.getElementById('goalText').innerHTML='Goal: '+goal; document.getElementById('todayName').innerHTML=new Date().toDateString(); }
+function pickGoal(g){ goal=g; localStorage.setItem('fh_goal',g); updateStats(); alert('Goal: '+g); }
+function openYT(q){ window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank'); }
+function showPage(id,btn){ document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); }); var t=document.getElementById('page-'+id); if(t) t.classList.add('active'); document.querySelectorAll('.topnav button').forEach(function(b){ b.classList.remove('active'); }); document.querySelectorAll('.bottom button').forEach(function(b){ b.classList.remove('active'); }); if(btn) btn.classList.add('active'); window.scrollTo(0,0); }
+function v(id){ return parseFloat(document.getElementById(id).value); }
+function showDiet(type,btn){ ['balanced','diabetic','heavy','period','oldage'].forEach(function(t){ document.getElementById('diet-'+t).style.display='none'; }); document.getElementById('diet-'+type).style.display='block'; document.querySelectorAll('.dietTab button').forEach(function(b){ b.classList.remove('active'); }); btn.classList.add('active'); setDietMode(dietMode, null); }
+let allEx=[ {name:'Warm-up March',cat:'Full Body',time:30,cal:3,desc:'March in place'}, {name:'Knee Push-Up',cat:'Arms',time:30,cal:5,desc:'Knee on floor'}, {name:'Squat',cat:'Legs',time:30,cal:5,desc:'Feet wide'}, {name:'Plank',cat:'Belly',time:30,cal:4,desc:'Straight body'}, {name:'Crunches',cat:'Belly',time:30,cal:5,desc:'Lift shoulders'}, {name:'Lunges',cat:'Legs',time:30,cal:5,desc:'One leg forward'}, {name:'Glute Bridge',cat:'Legs',time:30,cal:4,desc:'Lift hips'}, {name:'Jumping Jacks (Step)',cat:'Cardio',time:30,cal:6,desc:'Step side'}, {name:'Cool-down Stretch',cat:'Full Body',time:30,cal:2,desc:'Deep breath'} ];
+function renderEx(){ let f=document.getElementById('filterEx').value; document.getElementById('exList').innerHTML=allEx.filter(function(e){ return f=='all'||e.cat==f; }).map(function(e){ return '<div class="card"><b>'+e.name+'</b><p>'+e.cat+' | 30 sec | ~'+e.cal+' cal • '+e.desc+'</p><button onclick="startSingle(\''+e.name+'\')">▶ Do This</button></div>'; }).join(''); }
+renderEx();
+let yogaData=[ {name:'Cat-Cow Yoga',cat:'Belly',ben:'Belly + Back Pain',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800'}, {name:'Cobra Pose',cat:'Belly',ben:'Belly Fat + Back',img:'https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=800'}, {name:'Tree Pose',cat:'Flexibility',ben:'Balance + Legs',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800'}, {name:'Bridge Pose',cat:'Belly',ben:'Hips + Thighs',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800'}, {name:'Child Pose',cat:'Sleep',ben:'Stress + Sleep',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800'}, {name:'Butterfly Pose',cat:'PCOS',ben:'PCOS + Hormone',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800'} ];
+let yogaFilter='all';
+function filterYoga(cat){ yogaFilter=cat; renderYoga(); }
+function renderYoga(){ document.getElementById('yogaList').innerHTML=yogaData.filter(function(y){ return yogaFilter=='all'||y.cat==yogaFilter; }).map(function(y){ return '<div class="card"><img src="'+y.img+'"><h3>'+y.name+'</h3><p>'+y.cat+' | '+y.ben+'</p><button class="green" onclick="startSingle(\''+y.name+'\')">▶ Start</button></div>'; }).join(''); }
+renderYoga();
+let zumbaData=[ {name:'Zumba Salsa',ben:'300 Cal | Legs',img:'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800'}, {name:'Zumba Merengue',ben:'280 Cal | Belly + Hips',img:'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800'}, {name:'Zumba Bollywood',ben:'380 Cal | Most Fun',img:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800'} ];
+document.getElementById('zumbaList').innerHTML=zumbaData.map(function(z){ return '<div class="card"><img src="'+z.img+'"><h3>'+z.name+'</h3><p>'+z.ben+'</p><button style="background:#ff5722" onclick="startSingle(\''+z.name+'\')">▶ Start</button></div>'; }).join('');
+let taichiData=[ {name:'Tai Chi Breathing',ben:'Stress + Sleep • 2 min',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',desc:'Inhale 4 sec, exhale 6 sec'}, {name:'Wave Hands Like Clouds',ben:'Balance + Calm • 2 min',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',desc:'Slow side to side'}, {name:'White Crane',ben:'Balance + Legs • 2 min',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',desc:'Stand on one leg'}, {name:'Brush Knee and Push',ben:'Knee Pain + Legs • 2 min',img:'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',desc:'Brush knee, push slow'} ];
+document.getElementById('taichiList').innerHTML=taichiData.map(function(t){ return '<div class="card"><img src="'+t.img+'"><h3>🇯🇵 '+t.name+'</h3><p>'+t.ben+'</p><p>'+t.desc+'</p><button class="purple" onclick="startSingle(\''+t.name+'\')">▶ Start</button></div>'; }).join('');
+let program=[], idx=0, isRest=false, timerInt=null, timeLeft=30, paused=false;
+function beep(){ try{ let ctx=new (window.AudioContext||window.webkitAudioContext)(); let o=ctx.createOscillator(); o.connect(ctx.destination); o.start(); setTimeout(function(){ o.stop(); },200); }catch(e){} }
+function buildProgram(type){
+  if(type=='taichi10') return [{name:'Tai Chi Breathing',dur:60,type:'Warm-up'},{name:'Wave Hands Like Clouds',dur:120,type:'Work'},{name:'White Crane',dur:120,type:'Work'},{name:'Brush Knee and Push',dur:120,type:'Work'},{name:'Cool-down',dur:60,type:'Cool-down'}];
+  if(type=='radioTaiso') return [{name:'Radio Taiso - Arms Up',dur:30,type:'Warm-up'},{name:'Radio Taiso - Side Stretch',dur:30,type:'Work'},{name:'Radio Taiso - Arms Circle',dur:30,type:'Work'},{name:'Radio Taiso - Forward Bend',dur:30,type:'Work'},{name:'Radio Taiso - Knee Lift',dur:30,type:'Work'},{name:'Radio Taiso - Deep Breath',dur:30,type:'Cool-down'}];
+  if(type=='yoga14') return [{name:'Warm-up Breathing',dur:30,type:'Warm-up'},{name:'Cat-Cow Yoga',dur:60,type:'Work'},{name:'Cobra Pose',dur:60,type:'Work'},{name:'Tree Pose',dur:60,type:'Work'},{name:'Bridge Pose',dur:60,type:'Work'},{name:'Child Pose',dur:60,type:'Work'},{name:'Cool-down',dur:60,type:'Cool-down'}];
+  if(type=='zumba7') return [{name:'Zumba Warm-up',dur:60,type:'Warm-up'},{name:'Zumba Salsa',dur:120,type:'Work'},{name:'Zumba Merengue',dur:120,type:'Work'},{name:'Zumba Bollywood',dur:120,type:'Work'},{name:'Zumba Cool-down',dur:60,type:'Cool-down'}];
+  if(type=='walk4') return [{name:'Walking Warm-up 4 km/h',dur:60,type:'Warm-up'},{name:'Walking Brisk 5 km/h',dur:180,type:'Work'},{name:'Walking Fast 6 km/h',dur:120,type:'Work'},{name:'Walking Cool-down 3 km/h',dur:60,type:'Cool-down'}];
+  return [{name:'Warm-up March',dur:30,type:'Warm-up'},{name:'Knee Push-Up',dur:30,type:'Work'},{name:'Squat',dur:30,type:'Work'},{name:'Plank',dur:30,type:'Work'},{name:'Crunches',dur:30,type:'Work'},{name:'Lunges',dur:30,type:'Work'},{name:'Glute Bridge',dur:30,type:'Work'},{name:'Cool-down Stretch',dur:30,type:'Cool-down'}];
+}
+function startProgram(type){ program=buildProgram(type); idx=0; isRest=false; showPlayer(); startPlayerTick(); }
+function startSingle(name){ program=[{name:'Warm-up - Get Ready',dur:10,type:'Warm-up'},{name:name,dur:30,type:'Work'},{name:'Cool-down Stretch',dur:20,type:'Cool-down'}]; idx=0; isRest=false; showPlayer(); startPlayerTick(); }
+function showPlayer(){ var btn=document.querySelectorAll('.topnav button')[7]; showPage('player',btn); }
+function showCurrent(){ if(idx>=program.length){ finishWorkout(); return; } let cur=program[idx]; document.getElementById('phaseText').innerHTML=isRest?'😴 REST - Next: '+cur.name:cur.type+' • '+cur.name; document.getElementById('playerEx').innerHTML=isRest?'Take deep breath...':cur.name; document.getElementById('playerInfo').innerHTML='Exercise '+(idx+1)+' / '+program.length; let total=program.reduce(function(a,b){ return a+b.dur; },0); let done=program.slice(0,idx).reduce(function(a,b){ return a+b.dur; },0); document.getElementById('progBar').style.width=Math.round(done/total*100)+'%'; }
+function startPlayerTick(){ if(timerInt) clearInterval(timerInt); paused=false; let cur=program[idx]; timeLeft=isRest?10:cur.dur; showCurrent(); timerInt=setInterval(function(){ if(paused) return; timeLeft--; let m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('playerTimer').innerHTML=(m<10?'0'+m:m)+':'+(s<10?'0'+s:s); if(timeLeft<=0){ beep(); if(!isRest){ if(idx<program.length-1){ isRest=true; timeLeft=10; showCurrent(); } else { finishWorkout(); } } else { isRest=false; idx++; if(idx>=program.length){ finishWorkout(); return; } timeLeft=program[idx].dur; showCurrent(); } } },1000); }
+function startPlayer(){ if(!program.length){ alert('Go to Home / Programs and press Start first'); return; } paused=false; if(!timerInt) startPlayerTick(); }
+function pausePlayer(){ paused=true; }
+function nextEx(){ if(!program.length) return; isRest=false; idx=Math.min(idx+1,program.length-1); startPlayerTick(); }
+function prevEx(){ if(!program.length) return; isRest=false; idx=Math.max(idx-1,0); startPlayerTick(); }
+function resetTimer(){ if(!program.length) return alert('Start a workout first'); if(timerInt) clearInterval(timerInt); timerInt=null; isRest=false; timeLeft=program[idx].dur; alert('Timer Reset - '+program[idx].name); startPlayerTick(); }
+function resetWorkout(){ if(!program.length) return alert('Start a workout first'); if(timerInt) clearInterval(timerInt); timerInt=null; idx=0; isRest=false; document.getElementById('progBar').style.width='0%'; alert('Workout Reset - From Beginning'); startPlayerTick(); }
+function resetAll(){ if(confirm('Reset ALL progress?')){ localStorage.removeItem('fh_streak'); localStorage.removeItem('fh_min'); localStorage.removeItem('fh_cal'); streak=0; totalMin=0; totalCal=0; updateStats(); alert('All Progress Reset ✅'); } }
+function finishWorkout(){ if(timerInt) clearInterval(timerInt); timerInt=null; let mins=Math.round(program.reduce(function(a,b){ return a+b.dur; },0)/60); let cals=program.reduce(function(a,b){ return a+(b.dur/30*5); },0); streak++; totalMin+=mins; totalCal+=Math.round(cals); localStorage.setItem('fh_streak',streak); localStorage.setItem('fh_min',totalMin); localStorage.setItem('fh_cal',totalCal); updateStats(); document.getElementById('playerEx').innerHTML='🎉 Workout Done!'; document.getElementById('phaseText').innerHTML='Completed'; alert('🎉 Done!\n+'+mins+' min • ~'+Math.round(cals)+' cal • Streak: '+streak); showPage('home',document.querySelectorAll('.topnav button')[0]); }
+function calcWalk(){ let vel=v('walkVel'), min=v('walkTime'), w=v('walkWeight'); if(isNaN(vel)||isNaN(min)||isNaN(w)) return document.getElementById('walkRes').innerHTML='Fill all 3'; let dist=vel*(min/60); let steps=Math.round(dist*1400); let mult=parseFloat(document.getElementById('walkType').value); let cal=vel*w*(min/60)*0.75*mult; document.getElementById('walkRes').innerHTML='Distance '+dist.toFixed(2)+' Km | Steps ~ '+steps+' | Cal ~ '+cal.toFixed(0)+' | Pace '+(60/vel).toFixed(1)+' min/km'; }
+function calcStepsWalk(){ let s=v('walkSteps'); if(isNaN(s)) return document.getElementById('walkStepsRes').innerHTML='Fill Steps'; document.getElementById('walkStepsRes').innerHTML=s+' Steps = '+(s*0.0007).toFixed(2)+' Km | ~ '+(s*0.04).toFixed(0)+' Cal'; }
+function calcZumba(){ let min=v('zumbaMin'), w=v('zumbaWeight'); if(isNaN(min)||isNaN(w)) return document.getElementById('zumbaRes').innerHTML='Fill Minutes + Weight'; let per=parseFloat(document.getElementById('zumbaLevel').value); document.getElementById('zumbaRes').innerHTML='Zumba '+min+' min = ~ '+(per*min*(w/60)).toFixed(0)+' Cal 💃'; }
+function calcBMI(){ let h=v('bmiH')/100, w=v('bmiW'); if(isNaN(h)||isNaN(w)) return document.getElementById('bmiRes').innerHTML='Fill Height + Weight'; let bmi=w/(h*h); document.getElementById('bmiRes').innerHTML='BMI = '+bmi.toFixed(1)+' | '+(bmi<18.5?'Underweight':bmi<25?'Normal':bmi<30?'Overweight':'Obese'); }
+function calcCal(){ let per=parseFloat(document.getElementById('calType').value), min=v('calMin'), w=v('bmiW'); if(isNaN(w)) w=55; if(isNaN(min)) return document.getElementById('calRes').innerHTML='Fill Minutes'; document.getElementById('calRes').innerHTML='Burned ~ '+(per*min*(w/60)).toFixed(0)+' Calories'; }
+function calcWater(){ let w=v('waterW'); if(isNaN(w)) return document.getElementById('waterRes').innerHTML='Fill Weight'; let l=w*0.033; document.getElementById('waterRes').innerHTML='Drink '+l.toFixed(1)+' Litre / Day = '+(l*4).toFixed(0)+' Glasses'; }
+function calcIdeal(){ let h=v('idealH'); if(isNaN(h)) return document.getElementById('idealRes').innerHTML='Fill Height'; document.getElementById('idealRes').innerHTML='Ideal = '+((h-100)*0.85).toFixed(1)+' Kg for Female'; }
+function calcSteps(){ let s=v('steps'); if(isNaN(s)) return document.getElementById('stepsRes').innerHTML='Fill Steps'; document.getElementById('stepsRes').innerHTML=s+' Steps = ~ '+(s*0.04).toFixed(0)+' Cal | '+(s*0.0008).toFixed(2)+' Km'; }
+function calcGoal(){ let cur=v('curW'), goalW=v('goalW'); if(isNaN(cur)||isNaN(goalW)) return document.getElementById('goalRes').innerHTML='Fill Current + Goal'; document.getElementById('goalRes').innerHTML='Need to lose '+(cur-goalW).toFixed(1)+' Kg | ~ '+((cur-goalW)*7700).toFixed(0)+' Cal to burn'; }
+function calcBodyFat(){ let h=v('bfH'), waist=v('bfWaist'), neck=v('bfNeck'), hip=v('bfHip'); if(isNaN(h)||isNaN(waist)||isNaN(neck)||isNaN(hip)) return document.getElementById('bfRes').innerHTML='Fill all'; let bf=163.205*Math.log10(waist+hip-neck)-97.684*Math.log10(h)-78.387; document.getElementById('bfRes').innerHTML='Body Fat = '+bf.toFixed(1)+'%'; }
+function calcBMR(){ let w=v('bmrW'), h=v('bmrH'), age=v('bmrAge'); if(isNaN(w)||isNaN(h)||isNaN(age)) return document.getElementById('bmrRes').innerHTML='Fill all'; let bmr=10*w+6.25*h-5*age-161; let act=parseFloat(document.getElementById('bmrAct').value); let tdee=bmr*act; document.getElementById('bmrRes').innerHTML='BMR = '+bmr.toFixed(0)+' | Daily Need = '+tdee.toFixed(0)+' | Lose Weight Eat '+(tdee-400).toFixed(0)+' Cal'; }
+function calcProtein(){ let w=v('proW'); if(isNaN(w)) return document.getElementById('proRes').innerHTML='Fill Weight'; let per=parseFloat(document.getElementById('proGoal').value); document.getElementById('proRes').innerHTML='Protein = '+(w*per).toFixed(0)+'g / day'; }
+updateStats();
+setLang(currentLang);
+applyDietModeOnLoad();
+</script>
+</body>
+</html>
